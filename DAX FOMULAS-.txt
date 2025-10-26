@@ -1,0 +1,30 @@
+DAX FOMULAS:-
+
+%.Avg.Supplier.Risk.Score = DIVIDE([Avg.Supplier.Risk.Score],100)
+%.Composite.Risk.Score = 0.4*'All Measures'[%.Avg.Supplier.Risk.Score]+0.3*[%.of.Late.Shipments]+0.2*[%.Total.Defect.Rate]+0.1*[%.Inventory.Shortage.Rate]    
+%.Inventory.Shortage.Rate = DIVIDE([Item.Below.Min.Threshold],[Total.Inventory])
+%.of.Late.Shipments = DIVIDE([Total.Late.Shipments],[Total.Shipments])
+%.Total.Defect.Rate = DIVIDE([Total.Defect.Returns],[Total.Shipments])
+Average.Delivery.Time = AVERAGE(Shipments[Delay_Days])
+Avg.Shipment.Delays = CALCULATE(AVERAGE(Shipments[Delay_Days]),FILTER(Shipments,Shipments[Delay_Days]>0))
+Avg.Supplier.Risk.Score = AVERAGEX(Suppliers,Suppliers[Risk_Score])
+ Composite.Risk.Score = [%.Composite.Risk.Score]*100
+Defect.Rate % = DIVIDE([Total.Defect.Returns],[Total.Shipments])
+Item.Below.Min.Threshold = CALCULATE(COUNTROWS(Warehouses), Warehouses[Stock_Level]<Warehouses[Min_Threshold])
+On.Time.Delivery % = DIVIDE(COUNTROWS(FILTER(Shipments, Shipments[Status]="On Time")), COUNTROWS(Shipments))
+Return.Rate = DIVIDE([Total.Returns],[Total.Shipments])
+Total.Defect.Returns = COUNTROWS(FILTER(Orders,Orders[Return_Reason]="Quality Issue" || Orders[Return_Reason]="Damaged Items"))
+Total.Inventory = COUNTROWS(Warehouses)
+Total.Late.Shipments = CALCULATE(COUNTROWS(Shipments),Shipments[Status]="Delayed")
+Total.Orders = COUNTROWS(Orders)
+Total.Returns = COUNTROWS(FILTER(Orders, Orders[Return_Reason]="Damaged Item" || Orders[Return_Reason]="Wrong Product" || Orders[Return_Reason]="Qualtiy Issue" || Orders[Return_Reason]="Late Delivery"))
+Total.Shipments = COUNTROWS(Shipments)
+
+NORMAL CALCULATIONs:-
+
+Shipment Region = SWITCH(TRUE(),Shipments[Destination] IN {"Paris", "London", "Berlin"}, "Europe", Shipments[Destination] IN {"Mumbai", "Tokyo"}, "Asia", Shipments[Destination] in {"New York"}, "North America", Shipments[Destination] IN {"Sydney"}, "Austrailia")
+Region_Supp = SWITCH(TRUE(),Suppliers[Country] IN{"Brazil", "Canada", "USA"}, "America",Suppliers[Country] IN {"Germany", "UK"}, "Europe", Suppliers[Country]IN {"China", "India"}, "Asia", "other")
+Risk_Category = SWITCH(TRUE(), Suppliers[Risk_Score] >=90, "Critical-High Risk", Suppliers[Risk_Score]>= 70, "Medium-Risk", Suppliers[Risk_Score] >= 50,"Low-Risk", "other")
+Risk.Score = SWITCH(TRUE(), Suppliers[Risk_Score] >=90, "90-99", Suppliers[Risk_Score]>= 70,"70-89" , Suppliers[Risk_Score] >= 50,"50-69", "other")
+Supplier_Risk_Category = IF(Suppliers[Risk_Score]>80 && Suppliers[Reliability_Rating]<3, "High-Risk-Supplier","Low-Risk-Supplier")
+Inventory = IF(Warehouses[Stock_Level]<Warehouses[Min_Threshold], "Inventory-Shortage", "Inventory-Maintained")
